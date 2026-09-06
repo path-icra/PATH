@@ -16,7 +16,7 @@ description: Shared autonomy for humanoid teleoperation via probabilistic intent
 
 # Set these to the public page URL once the repo is live.
 url: https://path-icra.github.io/PATH
-image: https://path-icra.github.io/PATH/teaser.svg
+image: https://path-icra.github.io/PATH/fig2_2.jpg
 
 resources:
   paper: # link to the anonymized PDF
@@ -28,7 +28,7 @@ resources:
 
 speakerdeck:
 
-teaser: teaser.svg
+teaser: fig2_2.jpg
 
 abstract: |
   Teleoperating humanoid robots for **contact-rich manipulation** is difficult: the operator must
@@ -46,25 +46,33 @@ abstract: |
 body:
   - title: Method
     text: |
-      PATH couples belief estimation over object and contact state with a compliant reference
-      generator, arbitrating authority between operator and assistance continuously rather than
-      through discrete mode switches.
+      <div class="uk-grid-small uk-flex-middle uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+        <div>
+          <img src="fig1.png" alt="Belief-space shared control overview" class="uk-width-1-1" />
+          <span class="uk-text-meta">Fig. 1 &mdash; caption goes here.</span>
+        </div>
+        <div>
+          <p>PATH couples belief estimation over object and contact state with a compliant reference
+          generator, arbitrating authority between operator and assistance continuously rather than
+          through discrete mode switches.</p>
 
-      #### Layered sensing
-      A head-mounted RGB-D camera supports object and orientation belief; wrist-mounted RGB-D
-      cameras support contact belief.
+          <h4>Layered sensing</h4>
+          <p>A head-mounted RGB-D camera supports object and orientation belief; wrist-mounted RGB-D
+          cameras support contact belief.</p>
 
-      #### Belief input source
-      Belief is conditioned on the operator's command rather than robot forward kinematics, which
-      prevents self-confirming feedback.
+          <h4>Belief input source</h4>
+          <p>Belief is conditioned on the operator's command rather than robot forward kinematics,
+          which prevents self-confirming feedback.</p>
 
-      #### Reference generation
-      Position authority is suppressed while an object is held; orientation blends continuously
-      through confidence-weighted interpolation.
+          <h4>Reference generation</h4>
+          <p>Position authority is suppressed while an object is held; orientation blends
+          continuously through confidence-weighted interpolation.</p>
 
-      #### Grasp transition
-      Jaw-stall and co-motion detection with operator-frame rebasing removes discontinuities when
-      authority is released.
+          <h4>Grasp transition</h4>
+          <p>Jaw-stall and co-motion detection with operator-frame rebasing removes discontinuities
+          when authority is released.</p>
+        </div>
+      </div>
 
   - title: Experiments
     text: |
