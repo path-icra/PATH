@@ -1,0 +1,151 @@
+theme: default # default || classic || dark
+
+# --- Anonymized for double-blind review ---------------------------------
+# organization / twitter feed the og:site_name and twitter:site meta tags.
+# Keep them empty until the review period is over.
+organization: ''
+twitter: ''
+authors: []
+affiliations: []
+meta: []
+# ------------------------------------------------------------------------
+
+title: 'PATH: Probabilistic Assistance for Teleoperation of Humanoids'
+journal: "ICRA'27"
+description: Shared autonomy for humanoid teleoperation via probabilistic intent inference and compliant reference generation.
+
+# Set these to the public page URL once the repo is live.
+url: https://path-icra.github.io/PATH
+image: https://path-icra.github.io/PATH/teaser.svg
+
+resources:
+  paper: # link to the anonymized PDF
+  arxiv: # leave blank during review
+  code: # link to an anonymized code repository
+  video: # unlisted video URL, or leave blank
+  demo:
+  huggingface:
+
+speakerdeck:
+
+teaser: teaser.svg
+
+abstract: |
+  Teleoperating humanoid robots for **contact-rich manipulation** is difficult: the operator must
+  simultaneously reason about object geometry, contact state, and the imprecision of their own
+  control inputs. We present **PATH**, a shared-autonomy framework that infers operator intent
+  through probabilistic belief estimation over object pose and contact state, and generates
+  compliant reference motions that assist the operator without overriding their authority.
+
+  Belief is conditioned on the operator's command rather than on robot feedback, which avoids
+  self-confirming feedback loops, and a layered sensing architecture separates coarse object and
+  orientation belief from fine contact belief. We evaluate PATH on a humanoid platform across three
+  contact-rich manipulation tasks and observe consistent improvements over teleoperation and
+  arbitration baselines.
+
+body:
+  - title: Method
+    text: |
+      PATH couples belief estimation over object and contact state with a compliant reference
+      generator, arbitrating authority between operator and assistance continuously rather than
+      through discrete mode switches.
+
+      #### Layered sensing
+      A head-mounted RGB-D camera supports object and orientation belief; wrist-mounted RGB-D
+      cameras support contact belief.
+
+      #### Belief input source
+      Belief is conditioned on the operator's command rather than robot forward kinematics, which
+      prevents self-confirming feedback.
+
+      #### Reference generation
+      Position authority is suppressed while an object is held; orientation blends continuously
+      through confidence-weighted interpolation.
+
+      #### Grasp transition
+      Jaw-stall and co-motion detection with operator-frame rebasing removes discontinuities when
+      authority is released.
+
+  - title: Experiments
+    text: |
+      We evaluate PATH on three contact-rich manipulation tasks.
+
+      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@m" uk-grid>
+        <div>
+          <video src="videos/cap_unscrew.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <span class="uk-text-meta">Cap-Unscrew &mdash; bimanual unscrewing under partial occlusion.</span>
+        </div>
+        <div>
+          <video src="videos/leg_insert.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <span class="uk-text-meta">Leg-Insert &mdash; precision insertion requiring fine contact belief.</span>
+        </div>
+        <div>
+          <video src="videos/paper_staple.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <span class="uk-text-meta">Paper-Staple &mdash; sequential low-force contact.</span>
+        </div>
+      </div>
+
+  - title: Results
+    text: |
+      Task success rate (%) across baselines.
+
+      <div class="uk-overflow-auto uk-width-1-1">
+        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
+          <thead>
+            <tr><th>Method</th><th>Cap-Unscrew</th><th>Leg-Insert</th><th>Paper-Staple</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Teleop</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>XR-Teleop</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>Arbitration</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>Position-only</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>PATH&#8315;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr class="uk-active"><td><b>PATH (ours)</b></td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      Ablation over position belief ($P$), orientation belief ($O$), and jump diffusion ($J$).
+      Six configurations are structurally valid.
+
+      <div class="uk-overflow-auto uk-width-1-1">
+        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
+          <thead>
+            <tr><th>ID</th><th>P</th><th>O</th><th>J</th><th>Success (%)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>C1</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>C2</td><td>&ndash;</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>C3</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr><td>C4</td><td>&#10003;</td><td>&ndash;</td><td>&#10003;</td><td>&ndash;</td></tr>
+            <tr><td>C5</td><td>&ndash;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td></tr>
+            <tr class="uk-active"><td><b>C6</b></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+  - title: Reproducibility
+    text: |
+      Code will be released at the anonymized repository linked above. The setup used in our
+      experiments is summarized below.
+
+      | Step | Setup |
+      |------|-------|
+      | 1 | **Hardware.** A humanoid platform with a parallel-jaw gripper, one head-mounted RGB-D camera, and two wrist-mounted RGB-D cameras, driven by an onboard compute module. |
+      | 2 | **XR interface.** Operator commands are streamed from a WebXR-based client to the onboard computer over a local network. |
+      | 3 | **Belief and reference generation.** Belief inference and compliant reference generation run on a remote workstation and are transmitted at the full control rate. |
+      | 4 | **Evaluation protocol.** All baselines run under identical task setups; the full protocol and metrics are described in the paper. |
+
+  - title: License
+    text: |
+      This template is provided under the [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) license.
+      You are free to use and modify the code in your project as long as you include a link to this [GitHub repository](https://github.com/denkiwakame/academic-project-template) in your footer.
+
+bibtex: >
+  @inproceedings{path2027,
+    title     = {PATH: Probabilistic Assistance for Teleoperation of Humanoids},
+    booktitle = {Under review},
+    year      = {2027}
+  }
+
+projects: []
