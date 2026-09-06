@@ -12,9 +12,8 @@ meta: []
 
 title: 'PATH: Probabilistic Assistance for Teleoperation of Humanoids'
 journal: "ICRA'27"
-description: Shared autonomy for humanoid teleoperation via probabilistic intent inference and compliant reference generation.
+description: Belief-guided shared control that infers fine-grained manipulation intent during humanoid teleoperation.
 
-# Set these to the public page URL once the repo is live.
 url: https://path-icra.github.io/PATH
 image: https://path-icra.github.io/PATH/fig2_2.jpg
 
@@ -31,118 +30,242 @@ speakerdeck:
 teaser: fig2_2.jpg
 
 abstract: |
-  Teleoperating humanoid robots for **contact-rich manipulation** is difficult: the operator must
-  simultaneously reason about object geometry, contact state, and the imprecision of their own
-  control inputs. We present **PATH**, a shared-autonomy framework that infers operator intent
-  through probabilistic belief estimation over object pose and contact state, and generates
-  compliant reference motions that assist the operator without overriding their authority.
+  Humanoid teleoperation is an important tool for collecting whole-body manipulation
+  demonstrations for large-scale robot learning. However, most existing systems primarily focus on
+  reproducing human motion, which may be insufficient for precise manipulation because small errors
+  in contact location or hand orientation can prevent successful interaction.
 
-  Belief is conditioned on the operator's command rather than on robot feedback, which avoids
-  self-confirming feedback loops, and a layered sensing architecture separates coarse object and
-  orientation belief from fine contact belief. We evaluate PATH on a humanoid platform across three
-  contact-rich manipulation tasks and observe consistent improvements over teleoperation and
-  arbitration baselines.
+  We propose **PATH**, a belief-guided shared-control framework that continuously infers
+  fine-grained manipulation intent from operator motion and 3-D scene geometry. PATH represents
+  intent at three levels: target object, object-conditioned interaction contact, and hand approach
+  orientation. A hierarchical probabilistic belief estimator maintains these hypotheses over time,
+  while an ambiguity-aware transition mechanism balances temporal persistence with rapid adaptation
+  to changes in operator intent. The inferred intent is converted into a smooth task-space
+  reference and mapped to executable humanoid arm commands through constrained bimanual inverse
+  kinematics, separating responsive intent estimation from physical reference generation.
+
+  Real-world humanoid manipulation experiments show that PATH reduces task completion time,
+  corrective end-effector motion, and trajectory jerk compared with matched teleoperation and
+  conventional reference-generation baselines.
 
 body:
   - title: Method
     text: |
-      <div class="uk-grid-small uk-flex-middle uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
-        <div>
-          <img src="fig1.png" alt="Belief-space shared control overview" class="uk-width-1-1" />
-          <span class="uk-text-meta">Fig. 1 &mdash; caption goes here.</span>
-        </div>
-        <div>
-          <p>PATH couples belief estimation over object and contact state with a compliant reference
-          generator, arbitrating authority between operator and assistance continuously rather than
-          through discrete mode switches.</p>
+      <img src="fig1.png" alt="Intent inference overview" class="uk-align-left uk-width-1-1 uk-width-1-3@m" />
 
-          <h4>Layered sensing</h4>
-          <p>A head-mounted RGB-D camera supports object and orientation belief; wrist-mounted RGB-D
-          cameras support contact belief.</p>
+      PATH assists humanoid teleoperation by continuously inferring the operator's manipulation
+      intent and using it to refine the commanded hand motion. The framework consists of
+      probabilistic manipulation intent inference, belief-guided shared reference generation, and
+      bimanual humanoid control. It infers object, contact, and orientation intent from operator
+      motion and 3-D scene geometry, converts the inferred intent into a smooth task-space
+      reference, and executes it through bimanual inverse kinematics.
 
-          <h4>Belief input source</h4>
-          <p>Belief is conditioned on the operator's command rather than robot forward kinematics,
-          which prevents self-confirming feedback.</p>
+      #### Hierarchical manipulation belief
 
-          <h4>Reference generation</h4>
-          <p>Position authority is suppressed while an object is held; orientation blends
-          continuously through confidence-weighted interpolation.</p>
+      At time $t$, let $\mathcal{G}_t=\{g_i\}_{i=1}^{N_g}$ denote the candidate objects,
+      $\mathcal{C}_i=\{c_{i,j}\}_{j=1}^{N_i}$ the contact candidates associated with object $g_i$,
+      and $\mathcal{O}_t=\{o_k\}_{k=1}^{N_o}$ the orientation hypotheses. An object label alone
+      does not fully specify a manipulation, since a single object may admit multiple contact
+      regions. We therefore factor position intent into an object belief and an object-conditioned
+      contact belief,
 
-          <h4>Grasp transition</h4>
-          <p>Jaw-stall and co-motion detection with operator-frame rebasing removes discontinuities
-          when authority is released.</p>
-        </div>
-      </div>
+      $$b_t(g,c) = b_t(g)\,b_t(c\mid g),$$
+
+      while maintaining a separate orientation belief $b_t(o)$. This factorization restricts
+      contact competition to candidates belonging to the same object. The orientation belief is
+      independent because the manipulated object and the geometric reference defining the desired
+      hand orientation need not be the same.
+
+      #### Object and contact evidence
+
+      For a position hypothesis $h\in\mathcal{G}_t\cup\mathcal{C}_i$, compatibility with the
+      current operator motion is evaluated by
+
+      $$A(h) = w_x A_{\mathrm{prox}}(h) + w_d A_{\mathrm{dir}}(h) + w_r A_{\mathrm{reach}}(h) + w_{\ell} A_{\mathrm{align}}(h).$$
+
+      The proximity term is $A_{\mathrm{prox}}(h)=\exp(-\|\mathbf{p}_t-\mathbf{x}(h)\|/d_0)$ and the
+      direction term is $A_{\mathrm{dir}}(h)=\hat{\mathbf{v}}_t^{\top}\hat{\mathbf{d}}_h$, disabled
+      below a minimum hand speed. $A_{\mathrm{reach}}(h)$ penalizes hypotheses outside the arm
+      workspace, and $A_{\mathrm{align}}(h)$ measures agreement between the hand approach axis and
+      the contact surface normal where the local surface estimate is reliable. Advantages are
+      temporally smoothed and robustly standardized across the active hypotheses of each set.
+
+      #### Orientation evidence
+
+      Each orientation hypothesis $o_k=(s_k,\mathrm{rel}_k)$ associates a persistent planar
+      primitive $s_k$, with unit normal $\hat{\mathbf{n}}(s_k)$, with a desired relation
+      $\mathrm{rel}_k\in\{\textsf{par},\textsf{perp}\}$. With
+      $\mu_t(o)=\hat{\mathbf{h}}_t^{\top}\hat{\mathbf{n}}(s)$ for the hand approach axis
+      $\hat{\mathbf{h}}_t$, the relation error is
+
+      $$e_t(o)=\begin{cases}1-\mu_t(o)^2, & \mathrm{rel}=\textsf{par},\\ \mu_t(o)^2, & \mathrm{rel}=\textsf{perp}.\end{cases}$$
+
+      The error vanishes when the desired geometric relation is satisfied, and the squared form is
+      invariant to the sign of the estimated plane normal. The orientation advantage combines a
+      robust alignment loss, a persistence term active while the hand is nearly stationary, and a
+      convergence term computed from the alignment derivative
+      $\dot{\mu}_t(o)=(\boldsymbol{\omega}_t\times\hat{\mathbf{h}}_t)^{\top}\hat{\mathbf{n}}(s)$:
+
+      $$A_{\mathrm{ori}}(o) = -\ell\!\left(e_t(o)\right) + w_{\mathrm{hold}}\left(1-e_t(o)\right)\mathbf{1}\!\left[\|\boldsymbol{\omega}_t\|<\omega_{\min}\right] - \frac{w_{\mathrm{conv}}}{\omega_{\mathrm{ref}}}\dot e_t(o).$$
+
+      #### Ambiguity-aware transition and belief update
+
+      Given the previous belief $\mathbf{b}_{t-1}$ and processed evidence
+      $\widetilde{\mathbf{A}}_t$, disagreement among currently plausible hypotheses is quantified
+      by the belief-weighted evidence dispersion:
+
+      $$\bar A_t^{b}=\sum_k b_{t-1,k}\widetilde A_{t,k},\qquad D_t=\sum_k b_{t-1,k}\left(\widetilde A_{t,k}-\bar A_t^{b}\right)^2,$$
+
+      $$\lambda_t=\lambda_0+\kappa D_t,\qquad \rho_t=\operatorname{clip}(\lambda_t\Delta t,0,1).$$
+
+      A large $D_t$ indicates that plausible hypotheses receive inconsistent evidence, and is
+      therefore treated as a cue for faster belief redistribution. The belief follows a
+      predict&ndash;correct recursion,
+
+      $$\mathbf{b}_t^{-}=\left[(1-\rho_t)\mathbf{P}_0+\rho_t\boldsymbol{\Pi}_{\mathrm{sw}}^{\top}\right]\mathbf{b}_{t-1},$$
+
+      $$\mathbf{b}_t=\operatorname{softmax}\!\left(\log\mathbf{b}_t^{-}+\beta\widetilde{\mathbf{A}}_t\Delta t\right),$$
+
+      where $\mathbf{P}_0$ and $\boldsymbol{\Pi}_{\mathrm{sw}}$ are the persistence and switching
+      transitions and $\beta$ is the inverse temperature of the Boltzmann-rational correction. The
+      recursion is applied to $\mathcal{G}_t$, each $\mathcal{C}_i$, and $\mathcal{O}_t$, and the
+      selected intent is taken as the maximizer of each belief.
+
+      #### Belief-guided shared reference generation
+
+      The selected contact defines the position target when it satisfies the workspace and validity
+      conditions and the hand is not currently holding an object; otherwise the operator command is
+      retained. Rather than replacing the operator orientation, the assisted orientation target
+      interpolates toward the relation-consistent orientation,
+
+      $$\mathbf{R}_t^{\mathrm{tgt}}=\operatorname{Slerp}\!\left(\mathbf{R}_t^{\mathrm{cmd}},\mathbf{R}_t^{\mathrm{rel}};w_t\right),\qquad w_t=w_t^{\mathrm{belief}}w_t^{\mathrm{gate}}\in[0,1],$$
+
+      where $w_t^{\mathrm{belief}}$ is a hysteresis-smoothed function of posterior confidence and
+      $w_t^{\mathrm{gate}}$ suppresses assistance for temporally inconsistent detections, excessive
+      angular displacement, or discontinuous target motion. Interpolation acts on the target rather
+      than on the commanded reference, so that rapid changes in assistance authority do not
+      directly produce a discontinuity in reference velocity.
+
+      For the position error $\mathbf{e}_t^{p}$ and the orientation error
+      $\mathbf{e}_t^{R}=\log_{\mathrm{SO}(3)}(\mathbf{R}_t^{\mathrm{ref}}\mathbf{R}_t^{\mathrm{tgt}\top})$,
+      the reference evolves as a critically over-damped second-order system,
+
+      $$\ddot{\boldsymbol{\xi}}_t+2\zeta\omega_n\dot{\boldsymbol{\xi}}_t+\omega_n^2\boldsymbol{\xi}_t=\mathbf{0},\qquad \zeta>1,$$
+
+      acting on $\mathbb{R}^3$ for position and on $\mathfrak{so}(3)$ for orientation. The target is
+      held constant over each control interval and the reference is propagated using the exact
+      discrete transition of the second-order system.
+
+      #### Bimanual humanoid control
+
+      Task-space references are converted into joint commands by solving a nonlinear
+      inverse-kinematics problem over both arms jointly, with
+      $\mathbf{q}\in\mathbb{R}^{14}$ the bimanual arm joint vector:
+
+      $$\mathbf{q}_t^\star=\arg\min_{\mathbf{q}}\sum_{i\in\{L,R\}}\Big(w_p\|\mathbf{e}_i^{p}\|_2^2+w_R\|\mathbf{e}_i^{R}\|_2^2\Big)+w_{\mathrm{reg}}\|\mathbf{q}\|_2^2+w_{\mathrm{smooth}}\|\mathbf{q}-\mathbf{q}_{t-1}^\star\|_2^2$$
+
+      subject to the joint limits $\mathbf{q}^{-}\le\mathbf{q}\le\mathbf{q}^{+}$. The problem is
+      solved with IPOPT at every control step, warm-started from $\mathbf{q}_{t-1}^{\star}$. The
+      regularization resolves the redundancy of each seven-DoF arm, while the temporal term favors
+      the least-displaced solution between consecutive control steps. The lower body is controlled
+      independently by the whole-body locomotion controller.
 
   - title: Experiments
     text: |
-      We evaluate PATH on three contact-rich manipulation tasks.
+      We evaluate PATH on real-world humanoid manipulation tasks.
 
-      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@m" uk-grid>
+      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
         <div>
-          <video src="videos/cap_unscrew.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
-          <span class="uk-text-meta">Cap-Unscrew &mdash; bimanual unscrewing under partial occlusion.</span>
+          <video src="videos/bottle_opening.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <span class="uk-text-meta">Bottle Opening &mdash; used for the belief-component ablation.</span>
         </div>
         <div>
-          <video src="videos/leg_insert.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
-          <span class="uk-text-meta">Leg-Insert &mdash; precision insertion requiring fine contact belief.</span>
-        </div>
-        <div>
-          <video src="videos/paper_staple.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
-          <span class="uk-text-meta">Paper-Staple &mdash; sequential low-force contact.</span>
+          <video src="videos/cup_stacking.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <span class="uk-text-meta">Sequential Cup Stacking &mdash; used for the teleoperation-system comparison.</span>
         </div>
       </div>
 
   - title: Results
     text: |
-      Task success rate (%) across baselines.
+      **Contribution of the belief components on the Bottle Opening task.** Ten completed trials
+      per condition, pooled across three expert operators. Completion time and end-effector path
+      lengths are reported as mean $\pm$ sample standard deviation, and time improvement is
+      relative to unassisted teleoperation. Results are conditioned on task completion.
 
       <div class="uk-overflow-auto uk-width-1-1">
         <table class="uk-table uk-table-small uk-text-small uk-table-divider">
           <thead>
-            <tr><th>Method</th><th>Cap-Unscrew</th><th>Leg-Insert</th><th>Paper-Staple</th></tr>
+            <tr>
+              <th rowspan="2">Method</th>
+              <th colspan="3" class="uk-text-center">Belief components</th>
+              <th colspan="2" class="uk-text-center">Task performance</th>
+              <th colspan="2" class="uk-text-center">Operator effort</th>
+            </tr>
+            <tr>
+              <th>Pos.</th><th>Ori.</th><th>Adapt. trans.</th>
+              <th>Time (s) &darr;</th><th>Improvement (%) &uarr;</th>
+              <th>Trans. path (m) &darr;</th><th>Rot. path (rad) &darr;</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>Teleop</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>XR-Teleop</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>Arbitration</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>Position-only</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>PATH&#8315;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr class="uk-active"><td><b>PATH (ours)</b></td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
+            <tr>
+              <td>Teleoperation</td><td></td><td></td><td></td>
+              <td>39.9 &plusmn; 11.8</td><td>0.0</td><td>3.97 &plusmn; 1.41</td><td>37.49 &plusmn; 10.57</td>
+            </tr>
+            <tr>
+              <td>Pos. belief</td><td>&#10003;</td><td></td><td></td>
+              <td>35.9 &plusmn; 10.5</td><td>10.0</td><td>4.29 &plusmn; 1.62</td><td>37.24 &plusmn; 10.57</td>
+            </tr>
+            <tr>
+              <td>Ori. belief</td><td></td><td>&#10003;</td><td></td>
+              <td>37.3 &plusmn; 11.1</td><td>6.5</td><td>4.81 &plusmn; 1.64</td><td>39.12 &plusmn; 10.99</td>
+            </tr>
+            <tr>
+              <td>PATH w/o adapt. trans.</td><td>&#10003;</td><td>&#10003;</td><td></td>
+              <td>29.1 &plusmn; 8.8</td><td>27.1</td><td>3.73 &plusmn; 1.28</td><td>31.24 &plusmn; 9.60</td>
+            </tr>
+            <tr>
+              <td>PATH w/o ori.</td><td>&#10003;</td><td></td><td>&#10003;</td>
+              <td>38.3 &plusmn; 13.5</td><td>4.0</td><td>4.51 &plusmn; 1.76</td><td>38.84 &plusmn; 12.78</td>
+            </tr>
+            <tr>
+              <td>PATH w/o pos.</td><td></td><td>&#10003;</td><td>&#10003;</td>
+              <td>36.3 &plusmn; 13.3</td><td>9.0</td><td>4.55 &plusmn; 1.74</td><td>38.46 &plusmn; 13.68</td>
+            </tr>
+            <tr class="uk-active">
+              <td><b>PATH</b></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td>
+              <td><b>26.0</b> &plusmn; 8.5</td><td><b>34.8</b></td><td><b>3.07</b> &plusmn; 1.25</td><td><b>26.51</b> &plusmn; 11.13</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      Ablation over position belief ($P$), orientation belief ($O$), and jump diffusion ($J$).
-      Six configurations are structurally valid.
+      **Comparison with existing teleoperation systems on the Sequential Cup Stacking task.** Three
+      completed trials per method by one expert operator, reported as mean $\pm$ sample standard
+      deviation. NJ denotes normalized jerk.
 
       <div class="uk-overflow-auto uk-width-1-1">
         <table class="uk-table uk-table-small uk-text-small uk-table-divider">
           <thead>
-            <tr><th>ID</th><th>P</th><th>O</th><th>J</th><th>Success (%)</th></tr>
+            <tr>
+              <th>Method</th>
+              <th>Time (s) &darr;</th>
+              <th>NJ (&times;10<sup>10</sup>) &darr;</th>
+              <th>Trans. path (m) &darr;</th>
+              <th>Rot. path (rad) &darr;</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>C1</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>C2</td><td>&ndash;</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>C3</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td></tr>
-            <tr><td>C4</td><td>&#10003;</td><td>&ndash;</td><td>&#10003;</td><td>&ndash;</td></tr>
-            <tr><td>C5</td><td>&ndash;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td></tr>
-            <tr class="uk-active"><td><b>C6</b></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td></tr>
+            <tr><td>SONIC</td><td>64.18 &plusmn; 1.12</td><td>15.75 &plusmn; 3.68</td><td>11.09 &plusmn; 1.20</td><td>43.52 &plusmn; 3.29</td></tr>
+            <tr><td>TWIST2</td><td>56.42 &plusmn; 2.39</td><td>13.95 &plusmn; 1.38</td><td>8.15 &plusmn; 1.36</td><td>33.06 &plusmn; 5.93</td></tr>
+            <tr><td>XR-Teleop</td><td>55.04 &plusmn; 2.10</td><td>3.84 &plusmn; 0.40</td><td>6.06 &plusmn; 0.12</td><td>34.27 &plusmn; 3.28</td></tr>
+            <tr class="uk-active">
+              <td><b>PATH (ours)</b></td>
+              <td><b>42.82</b> &plusmn; 2.69</td><td><b>1.29</b> &plusmn; 0.32</td><td><b>5.66</b> &plusmn; 1.00</td><td><b>27.23</b> &plusmn; 2.85</td>
+            </tr>
           </tbody>
         </table>
       </div>
-
-  - title: Reproducibility
-    text: |
-      Code will be released at the anonymized repository linked above. The setup used in our
-      experiments is summarized below.
-
-      | Step | Setup |
-      |------|-------|
-      | 1 | **Hardware.** A humanoid platform with a parallel-jaw gripper, one head-mounted RGB-D camera, and two wrist-mounted RGB-D cameras, driven by an onboard compute module. |
-      | 2 | **XR interface.** Operator commands are streamed from a WebXR-based client to the onboard computer over a local network. |
-      | 3 | **Belief and reference generation.** Belief inference and compliant reference generation run on a remote workstation and are transmitted at the full control rate. |
-      | 4 | **Evaluation protocol.** All baselines run under identical task setups; the full protocol and metrics are described in the paper. |
 
   - title: License
     text: |
