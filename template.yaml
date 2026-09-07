@@ -76,6 +76,15 @@ body:
 
       - **Compliant Reference Generation**
 
+        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+          <div>
+            <img src="data/path_reference_relation_trial_013.gif" alt="PATH reference generation for trial 013" class="uk-width-1-1" />
+          </div>
+          <div>
+            <img src="data/path_reference_relation_trial_006.gif" alt="PATH reference generation for trial 006" class="uk-width-1-1" />
+          </div>
+        </div>
+
         The inferred intent gently guides the operator's commanded motion toward a valid contact and orientation target. Confidence and safety gates preserve the original command whenever the estimate is uncertain, while smooth filtering prevents abrupt reference changes.
 
       - **Bimanual Humanoid Control**
