@@ -39,9 +39,12 @@ def pose(value: str) -> tuple[np.ndarray, np.ndarray]:
     return np.asarray(payload["position_m"], dtype=float), np.asarray(payload["orientation"], dtype=float).reshape(3, 3)
 
 
-def valid_rows() -> list[dict]:
+def valid_rows(source: Path = SOURCE, start_time: float | None = None, end_time: float | None = None) -> list[dict]:
     rows: list[dict] = []
-    for _, row in pd.read_csv(SOURCE).iterrows():
+    for _, row in pd.read_csv(source).iterrows():
+        elapsed = float(row["elapsed_s"])
+        if (start_time is not None and elapsed < start_time) or (end_time is not None and elapsed > end_time):
+            continue
         belief_raw, objects_raw, hand_raw = row["left_belief_target_json"], row["left_objects_json"], row["left_ee_json"]
         if not all(isinstance(value, str) and value not in {"", "null", "[]"} for value in (belief_raw, objects_raw, hand_raw)):
             continue
@@ -58,7 +61,7 @@ def valid_rows() -> list[dict]:
         contacts = bottle["contacts"]
         rows.append(
             {
-                "time": float(row["elapsed_s"]),
+                "time": elapsed,
                 "hand": hand_position,
                 "axis": unit(hand_rotation @ HAND_AXIS_LOCAL),
                 "normal": unit(belief_normal),
@@ -169,8 +172,8 @@ def contact_scores(frame: dict, velocity: np.ndarray) -> tuple[list[dict], np.nd
     return candidates, np.mean([item["position"] for item in candidates], axis=0)
 
 
-def render_contact(rows: list[dict]) -> None:
-    indices = np.linspace(4, len(rows) - 1, FRAME_COUNT, dtype=int)
+def render_contact(rows: list[dict], output: Path = CONTACT_OUTPUT, frame_count: int = FRAME_COUNT) -> None:
+    indices = np.linspace(4, len(rows) - 1, frame_count, dtype=int)
     all_points = np.vstack([item["hand"] for item in rows] + [np.asarray(contact["position_m"], dtype=float) for item in rows for contact in item["contacts"]])
     center = all_points.mean(axis=0)
     scale = max(float(np.ptp(all_points[:, :2], axis=0).max()) * 0.62, 0.18)
@@ -230,9 +233,9 @@ def render_contact(rows: list[dict]) -> None:
             score_bar(panel, base - 0.096, "Reachable", candidate["reach"], PURPLE, winner)
             score_bar(panel, base - 0.138, "Surface-aligned", None, ORANGE, winner)
         frames.append(capture(figure))
-    CONTACT_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    frames[0].save(CONTACT_OUTPUT, save_all=True, append_images=frames[1:], duration=FRAME_DURATION_MS, loop=0, optimize=False, disposal=2)
-    print(f"Wrote {CONTACT_OUTPUT} ({len(frames)} frames)")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    frames[0].save(output, save_all=True, append_images=frames[1:], duration=FRAME_DURATION_MS, loop=0, optimize=False, disposal=2)
+    print(f"Wrote {output} ({len(frames)} frames)")
 
 
 def draw_relation_card(axis, origin: tuple[float, float], title: str, error: float, hold: float, convergence: float, selected: bool) -> None:
@@ -251,7 +254,7 @@ def draw_relation_card(axis, origin: tuple[float, float], title: str, error: flo
         axis.plot([x + 0.045, x + 0.045 + 0.380 * value], [y + bar_offset, y + bar_offset], transform=axis.transAxes, color=color, linewidth=9, solid_capstyle="round")
 
 
-def render_orientation(rows: list[dict]) -> None:
+def render_orientation(rows: list[dict], output: Path = ORIENTATION_OUTPUT, frame_count: int = FRAME_COUNT, hold_end_frames: int = 0) -> None:
     times = np.asarray([item["time"] for item in rows])
     hand_axis = np.vstack([item["axis"] for item in rows])
     normal = np.vstack([item["normal"] for item in rows])
@@ -262,7 +265,7 @@ def render_orientation(rows: list[dict]) -> None:
     errors = {"parallel": 1 - mu**2, "perpendicular": mu**2}
     axis_rate = np.linalg.norm(np.gradient(hand_axis, times, axis=0), axis=1)
     derivatives = {key: np.gradient(value, times) for key, value in errors.items()}
-    indices = np.linspace(3, len(rows) - 3, FRAME_COUNT, dtype=int)
+    indices = np.linspace(3, len(rows) - 3, frame_count, dtype=int)
     frames: list[Image.Image] = []
     for index in indices:
         relation = rows[index]["relation"]
@@ -280,30 +283,40 @@ def render_orientation(rows: list[dict]) -> None:
             for spine in axis.spines.values(): spine.set_visible(False)
         rounded_box(diagram, 0.0, 0.0, 1.0, 1.0, facecolor="#ffffff", radius=0.045)
         diagram.set_xlim(-1.18, 1.18); diagram.set_ylim(-1.18, 1.18); diagram.set_aspect("equal")
-        h = hand_axis[index][[0, 2]]
-        n = normal[index][[0, 2]]
-        if np.linalg.norm(h) < 0.05: h = np.array([0.7, 0.7])
-        if np.linalg.norm(n) < 0.05: n = np.array([0.0, 1.0])
-        h, n = unit(h), unit(n)
+        # Draw the schematic from the true 3-D unsigned axis angle instead of
+        # a camera-plane projection, which can visually contradict the belief.
+        angle = float(np.degrees(np.arccos(np.clip(abs(mu[index]), 0, 1))))
+        radians = np.radians(angle)
+        n = np.array([0.0, 1.0])
+        h = np.array([np.sin(radians), np.cos(radians)])
         diagram.add_patch(plt.Circle((0, 0), 0.18, color="#e2e8f0", ec=SLATE, lw=1.6))
         
         diagram.arrow(0, 0, h[0] * 0.80, h[1] * 0.80, color=BLUE, width=0.026, head_width=0.12, length_includes_head=True)
         diagram.arrow(0, 0, n[0] * 0.80, n[1] * 0.80, color=ORANGE, width=0.026, head_width=0.12, length_includes_head=True)
-        angle = np.degrees(np.arccos(np.clip(abs(float(np.dot(h, n))), 0, 1)))
         diagram.text(0, -0.98, f"axis angle  {angle:.0f}°", ha="center", fontsize=14, color=SLATE, fontweight="bold")
         for card_index, key in enumerate(("parallel", "perpendicular")):
             draw_relation_card(cards, (0.015 + card_index * 0.500, 0.080), key.upper(), *components[key], key == relation)
         frames.append(capture(figure))
-    frames[0].save(ORIENTATION_OUTPUT, save_all=True, append_images=frames[1:], duration=FRAME_DURATION_MS, loop=0, optimize=False, disposal=2)
-    print(f"Wrote {ORIENTATION_OUTPUT} ({len(frames)} frames)")
+    if hold_end_frames:
+        frames.extend(frames[-1].copy() for _ in range(hold_end_frames))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    frames[0].save(output, save_all=True, append_images=frames[1:], duration=FRAME_DURATION_MS, loop=0, optimize=False, disposal=2)
+    print(f"Wrote {output} ({len(frames)} frames)")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--only", choices=("contact", "orientation"), help="Render one explanatory GIF only.")
+    parser.add_argument("--source", type=Path, default=SOURCE, help="PATH controller CSV")
+    parser.add_argument("--start", type=float, help="Optional source-clip start time in seconds")
+    parser.add_argument("--end", type=float, help="Optional source-clip end time in seconds")
+    parser.add_argument("--contact-output", type=Path, default=CONTACT_OUTPUT, help="Contact GIF output path")
+    parser.add_argument("--orientation-output", type=Path, default=ORIENTATION_OUTPUT, help="Orientation GIF output path")
+    parser.add_argument("--frames", type=int, default=FRAME_COUNT, help="Number of GIF frames to render")
+    parser.add_argument("--hold-end-frames", type=int, default=0, help="Extra still frames appended after the final valid pose")
     arguments = parser.parse_args()
-    data = valid_rows()
+    data = valid_rows(arguments.source, arguments.start, arguments.end)
     if arguments.only in {None, "contact"}:
-        render_contact(data)
+        render_contact(data, arguments.contact_output, arguments.frames)
     if arguments.only in {None, "orientation"}:
-        render_orientation(data)
+        render_orientation(data, arguments.orientation_output, arguments.frames, arguments.hold_end_frames)

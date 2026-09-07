@@ -71,11 +71,11 @@ body:
 
       - **Object and Object-Conditioned Contact Inference**
 
-        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
-          <div>
+        <div class="uk-grid-small uk-flex-middle" uk-grid>
+          <div class="uk-width-1-1 uk-width-3-5@m">
             <img src="data/path_contact_advantage_trial_013.gif" alt="Object-conditioned contact advantage inference" class="uk-width-1-1" />
           </div>
-          <div class="uk-flex uk-flex-middle">
+          <div class="uk-width-1-1 uk-width-2-5@m uk-flex uk-flex-middle">
             <div>
               <p><strong>Motion-consistent contact evidence.</strong> PATH evaluates each object-conditioned contact against the operator's current hand motion and task feasibility, then stabilizes the evidence over time before selecting the assisted target.</p>
             </div>
@@ -92,11 +92,11 @@ body:
 
       - **Orientation Inference**
 
-        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
-          <div>
+        <div class="uk-grid-small uk-flex-middle" uk-grid>
+          <div class="uk-width-1-1 uk-width-3-5@m">
             <img src="data/path_orientation_advantage_trial_013.gif" alt="Orientation-relation advantage inference" class="uk-width-1-1" />
           </div>
-          <div class="uk-flex uk-flex-middle">
+          <div class="uk-width-1-1 uk-width-2-5@m uk-flex uk-flex-middle">
             <div>
               <p><strong>Relation-aware orientation evidence.</strong> PATH continuously compares parallel and perpendicular hand-to-surface-normal relations, combining current alignment with the operator's rotational behavior rather than fixing one approach orientation.</p>
             </div>
