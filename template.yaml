@@ -53,7 +53,14 @@ body:
     text: |
       ### **Hierarchical manipulation belief**
 
-      <img src="hierarchical-manipulation-belief.gif" alt="Hierarchical manipulation belief animation" class="uk-align-left uk-width-1-1 uk-width-1-2@m" />
+      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+        <div>
+          <img src="hierarchical-manipulation-belief.gif" alt="Hierarchical manipulation belief animation" class="uk-width-1-1" />
+        </div>
+        <div>
+          <video src="videos/PATH_cup_stack.mp4" loop muted playsinline uk-video="autoplay:inview" class="uk-width-1-1"></video>
+        </div>
+      </div>
 
       PATH estimates manipulation intent hierarchically, first identifying the relevant object and then its likely contact region. A separate orientation belief uses the operator's motion and scene geometry to resolve how the hand should approach the task.
 
