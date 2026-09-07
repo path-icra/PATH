@@ -77,11 +77,17 @@ body:
           </div>
           <div class="uk-flex uk-flex-middle">
             <div>
-              <p><strong>Motion-consistent contact evidence.</strong> PATH scores each object-conditioned contact using complementary advantage terms, then temporally stabilizes the active hypotheses before selecting assistance.</p>
-              <p class="uk-margin-small"><strong>Proximity</strong> — favors contacts near the hand. <strong>Directional intent</strong> — rewards targets along the measured hand motion and is gated at low speed. <strong>Workspace feasibility</strong> — suppresses contacts outside the corresponding arm's reachable workspace.</p>
-              <p class="uk-margin-small"><strong>Surface alignment</strong> — rewards agreement between the hand approach axis and a reliable local contact normal; the term is disabled when the surface estimate is unavailable. <strong>Temporal consistency</strong> — smoothing and robust standardization prevent brief noisy observations from changing the selected contact.</p>
+              <p><strong>Motion-consistent contact evidence.</strong> PATH evaluates each object-conditioned contact against the operator's current hand motion and task feasibility, then stabilizes the evidence over time before selecting the assisted target.</p>
             </div>
           </div>
+        </div>
+
+        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-margin-small-top" uk-grid>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #16a34a; border-radius: 0.45rem;"><strong>Proximity</strong><br><span class="uk-text-small">Prioritizes contact points close to the current hand position.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 0.45rem;"><strong>Directional intent</strong><br><span class="uk-text-small">Rewards candidates aligned with the measured hand-motion direction.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0.45rem;"><strong>Workspace feasibility</strong><br><span class="uk-text-small">Suppresses contact hypotheses outside the corresponding arm's reach.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #f97316; border-radius: 0.45rem;"><strong>Surface alignment</strong><br><span class="uk-text-small">Uses a reliable local normal to favor a compatible hand approach.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #64748b; border-radius: 0.45rem;"><strong>Temporal consistency</strong><br><span class="uk-text-small">Smooths and standardizes evidence to reject short-lived noisy changes.</span></div></div>
         </div>
 
       - **Orientation Inference**
@@ -92,11 +98,16 @@ body:
           </div>
           <div class="uk-flex uk-flex-middle">
             <div>
-              <p><strong>Relation-aware orientation evidence.</strong> PATH continuously compares parallel and perpendicular hand-to-surface-normal relations instead of committing to a fixed approach orientation.</p>
-              <p class="uk-margin-small"><strong>Geometric alignment</strong> — favors the relation with the smallest normal-axis error. <strong>Stationary hold</strong> — preserves a well-aligned relation while the hand is nearly still, preventing unnecessary belief switching.</p>
-              <p class="uk-margin-small"><strong>Convergence</strong> — rewards angular motion that reduces the selected relation error. <strong>Normal-sign invariance</strong> — squared alignment makes the estimate robust when the perceived surface normal flips direction.</p>
+              <p><strong>Relation-aware orientation evidence.</strong> PATH continuously compares parallel and perpendicular hand-to-surface-normal relations, combining current alignment with the operator's rotational behavior rather than fixing one approach orientation.</p>
             </div>
           </div>
+        </div>
+
+        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-margin-small-top" uk-grid>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #16a34a; border-radius: 0.45rem;"><strong>Geometric alignment</strong><br><span class="uk-text-small">Favors the relation with the smallest hand-axis to surface-normal error.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0.45rem;"><strong>Stationary hold</strong><br><span class="uk-text-small">Keeps a well-aligned relation stable while the hand is nearly still.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 0.45rem;"><strong>Convergence</strong><br><span class="uk-text-small">Rewards angular motion that actively reduces relation error.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #f97316; border-radius: 0.45rem;"><strong>Normal-sign invariance</strong><br><span class="uk-text-small">Uses squared alignment to remain robust when a perceived normal flips sign.</span></div></div>
         </div>
 
       ### **Compliant reference generation & Bimanual Control**
