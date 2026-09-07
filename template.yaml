@@ -70,7 +70,14 @@ body:
 
       ### **Bimanual humanoid control**
 
-      The resulting task-space references are converted into coordinated commands for both humanoid arms. Joint limits and motion continuity are enforced at every control step so the robot executes assistance smoothly and reliably.
+      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+        <div>
+          <img src="data/20260805_174753_static_ee_static_upper.gif" alt="G1 upper-body end-effector tracking" class="uk-width-1-1" />
+        </div>
+        <div class="uk-flex uk-flex-middle">
+          <p class="uk-margin-remove">The resulting task-space references are converted into coordinated commands for both humanoid arms. Joint limits and motion continuity are enforced at every control step so the robot executes assistance smoothly and reliably.</p>
+        </div>
+      </div>
 
   - title: Experiments
     text: |
