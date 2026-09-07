@@ -51,6 +51,11 @@ abstract: |
 body:
   - title: Method
     text: |
+      ## **Probabilistic Assistance for Teleoperation of Humanoid**
+
+      - **Real-world demonstration**
+      - **Comparison with teleoperation without belief inference**
+
       ### **Hierarchical manipulation belief**
 
       <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
@@ -64,20 +69,25 @@ body:
 
       PATH estimates manipulation intent hierarchically, first identifying the relevant object and then its likely contact region. A separate orientation belief uses the operator's motion and scene geometry to resolve how the hand should approach the task.
 
-      ### **Compliant reference generation**
+      - **Object and Object-Conditioned Contact Inference**
+      - **Orientation Inference**
 
-      The inferred intent gently guides the operator's commanded motion toward a valid contact and orientation target. Confidence and safety gates preserve the original command whenever the estimate is uncertain, while smooth filtering prevents abrupt reference changes.
+      ### **Compliant reference generation & Bimanual Control**
 
-      ### **Bimanual humanoid control**
+      - **Compliant Reference Generation**
 
-      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
-        <div>
-          <img src="data/20260805_174753_static_ee_static_upper.gif" alt="G1 upper-body end-effector tracking" class="uk-width-1-1" />
+        The inferred intent gently guides the operator's commanded motion toward a valid contact and orientation target. Confidence and safety gates preserve the original command whenever the estimate is uncertain, while smooth filtering prevents abrupt reference changes.
+
+      - **Bimanual Humanoid Control**
+
+        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+          <div>
+            <img src="data/20260805_174753_static_ee_static_upper.gif" alt="G1 upper-body end-effector tracking" class="uk-width-1-1" />
+          </div>
+          <div class="uk-flex uk-flex-middle">
+            <p class="uk-margin-remove">The resulting task-space references are converted into coordinated commands for both humanoid arms. Joint limits and motion continuity are enforced at every control step so the robot executes assistance smoothly and reliably.</p>
+          </div>
         </div>
-        <div class="uk-flex uk-flex-middle">
-          <p class="uk-margin-remove">The resulting task-space references are converted into coordinated commands for both humanoid arms. Joint limits and motion continuity are enforced at every control step so the robot executes assistance smoothly and reliably.</p>
-        </div>
-      </div>
 
   - title: Experiments
     text: |
