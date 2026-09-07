@@ -85,7 +85,13 @@ body:
           </div>
         </div>
 
-        The inferred intent gently guides the operator's commanded motion toward a valid contact and orientation target. Confidence and safety gates preserve the original command whenever the estimate is uncertain, while smooth filtering prevents abrupt reference changes.
+        <div class="uk-flex uk-flex-center uk-flex-wrap uk-flex-middle uk-margin-small-top" style="gap: 1.1rem; font-size: 0.9rem;">
+          <span><span style="color: #2ca25f; font-size: 1.25em;">●</span> Reference motion</span>
+          <span><span style="color: #1976d2; font-size: 1.25em;">●</span> Gripper state</span>
+          <span><span style="color: #f28e2b; font-size: 1.25em;">●</span> Bottle normal</span>
+        </div>
+
+        **Belief-gated shared autonomy.** PATH turns confident contact and orientation hypotheses into shared targets while retaining the operator command under uncertainty. **Target-space interpolation** and **safety-aware gating** avoid abrupt authority changes; overdamped compliant dynamics then produce smooth position and SO(3) orientation references.
 
       - **Bimanual Humanoid Control**
 
@@ -94,7 +100,7 @@ body:
             <img src="data/20260805_174753_static_ee_static_upper.gif" alt="G1 upper-body end-effector tracking" class="uk-width-1-1" />
           </div>
           <div class="uk-flex uk-flex-middle">
-            <p class="uk-margin-remove">The resulting task-space references are converted into coordinated commands for both humanoid arms. Joint limits and motion continuity are enforced at every control step so the robot executes assistance smoothly and reliably.</p>
+            <p class="uk-margin-remove"><strong>Joint nonlinear IK for coordinated assistance.</strong> PATH solves both 7-DoF arms together from the generated task-space references, balancing position and orientation tracking with joint-limit feasibility. <strong>Warm-started, smooth redundancy resolution</strong> regularizes the solution and penalizes inter-frame motion, yielding continuous, executable bimanual commands while locomotion remains independently controlled.</p>
           </div>
         </div>
 
