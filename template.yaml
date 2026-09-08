@@ -167,7 +167,7 @@ body:
 
       <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
         <div>
-          <video src="videos/bottle_opening.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
+          <video src="videos/bottle_exp.mp4" loop muted playsinline uk-video="autoplay:inview" class="uk-width-1-1"></video>
           <span class="uk-text-meta">Bottle Opening &mdash; used for the belief-component ablation.</span>
         </div>
         <div>
