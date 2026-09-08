@@ -11,7 +11,7 @@ meta: []
 # ------------------------------------------------------------------------
 
 title: 'PATH: Probabilistic Assistance for Teleoperation of Humanoids'
-journal: "ICRA'27"
+journal: 'Under Review'
 description: Belief-guided shared control that infers fine-grained manipulation intent during humanoid teleoperation.
 
 url: https://path-icra.github.io/PATH
@@ -47,6 +47,8 @@ abstract: |
   Real-world humanoid manipulation experiments show that PATH reduces task completion time,
   corrective end-effector motion, and trajectory jerk compared with matched teleoperation and
   conventional reference-generation baselines.
+
+  **PATH couples hierarchical object-contact-orientation belief inference with compliant shared-reference generation for smooth bimanual humanoid teleoperation.**
 
 body:
   - title: Method
