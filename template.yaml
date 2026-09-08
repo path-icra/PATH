@@ -239,11 +239,6 @@ body:
         </table>
       </div>
 
-  - title: License
-    text: |
-      This template is provided under the [Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) license.
-      You are free to use and modify the code in your project as long as you include a link to this [GitHub repository](https://github.com/denkiwakame/academic-project-template) in your footer.
-
 bibtex: >
   @inproceedings{path2027,
     title     = {PATH: Probabilistic Assistance for Teleoperation of Humanoids},
