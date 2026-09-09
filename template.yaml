@@ -77,6 +77,25 @@ body:
 
       - **Comparison with teleoperation without belief inference**
 
+        <p class="uk-text-small">Direct visual comparison under the same cup-manipulation task.</p>
+
+        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+          <div>
+            <video src="videos/comparison/PATH_CUP.MOV" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1"></video>
+            <div class="uk-padding-small" style="background: #ecfdf5; border-left: 3px solid #16a34a; border-radius: 0 0 0.45rem 0.45rem;">
+              <strong style="color: #15803d;">PATH (ours)</strong><br>
+              <span class="uk-text-small">Belief-guided object, contact, and orientation assistance</span>
+            </div>
+          </div>
+          <div>
+            <video src="videos/comparison/TELEOP_real.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1"></video>
+            <div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #64748b; border-radius: 0 0 0.45rem 0.45rem;">
+              <strong style="color: #475569;">Teleoperation only</strong><br>
+              <span class="uk-text-small">Operator command without belief inference</span>
+            </div>
+          </div>
+        </div>
+
       ### **Hierarchical manipulation belief**
 
       <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
