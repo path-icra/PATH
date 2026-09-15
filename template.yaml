@@ -15,7 +15,7 @@ journal: 'Under Review'
 description: Belief-guided shared control that infers fine-grained manipulation intent during humanoid teleoperation.
 
 url: https://path-icra.github.io/PATH
-image: https://path-icra.github.io/PATH/fig2_2.jpg
+image: https://path-icra.github.io/PATH/fig2_fin.png
 
 resources:
   paper: # link to the anonymized PDF
@@ -27,28 +27,16 @@ resources:
 
 speakerdeck:
 
-teaser: fig2_2.jpg
+teaser: fig2_fin.png
 
 abstract: |
-  Humanoid teleoperation is an important tool for collecting whole-body manipulation
-  demonstrations for large-scale robot learning. However, most existing systems primarily focus on
-  reproducing human motion, which may be insufficient for precise manipulation because small errors
-  in contact location or hand orientation can prevent successful interaction.
+  Humanoid teleoperation is an important tool for collecting whole-body manipulation demonstrations for large-scale robot learning. However, most existing systems mainly focus on reproducing human motion. For precise manipulation, even small errors in contact location or hand orientation can cause the robot to miss the intended interaction.
 
-  We propose **PATH**, a belief-guided shared-control framework that continuously infers
-  fine-grained manipulation intent from operator motion and 3-D scene geometry. PATH represents
-  intent at three levels: target object, object-conditioned interaction contact, and hand approach
-  orientation. A hierarchical probabilistic belief estimator maintains these hypotheses over time,
-  while an ambiguity-aware transition mechanism balances temporal persistence with rapid adaptation
-  to changes in operator intent. The inferred intent is converted into a smooth task-space
-  reference and mapped to executable humanoid arm commands through constrained bimanual inverse
-  kinematics, separating responsive intent estimation from physical reference generation.
+  We propose **PATH**, a belief-guided shared control framework that continuously infers fine-grained manipulation intent from operator motion and 3-D scene geometry. PATH represents intent using an object belief, an object-conditioned contact belief, and a separate hand-approach orientation belief. It also uses an evidence-adaptive belief transition that adjusts belief switching according to belief-weighted evidence dispersion. The inferred intent is converted into a smooth task-space reference and mapped to executable humanoid arm commands through constrained bimanual inverse kinematics. This separates responsive intent estimation from smooth physical execution.
 
-  Real-world humanoid manipulation experiments show that PATH reduces task completion time,
-  corrective end-effector motion, and trajectory jerk compared with matched teleoperation and
-  conventional reference-generation baselines.
+  Real-world humanoid manipulation experiments show that PATH reduces task completion time, translational and rotational end-effector path lengths, and trajectory jerk compared with matched teleoperation and conventional reference-generation baselines.
 
-  **PATH couples hierarchical object-contact-orientation belief inference with compliant shared-reference generation for smooth bimanual humanoid teleoperation.**
+  **PATH combines evidence-adaptive intent inference with smooth shared references and constrained bimanual inverse kinematics.**
 
 body:
   - title: Method
@@ -107,7 +95,9 @@ body:
         </div>
       </div>
 
-      PATH estimates manipulation intent hierarchically, first identifying the relevant object and then its likely contact region. A separate orientation belief uses the operator's motion and scene geometry to resolve how the hand should approach the task.
+      PATH factors position intent into an object belief and an object-conditioned contact belief, so contacts compete within each object. A separate orientation belief relates the commanded hand approach axis to scene planes, independently of the selected object.
+
+      **Evidence-adaptive belief transition.** Belief-weighted evidence dispersion adjusts the mixture of persistence and switching transitions: greater dispersion increases switching weight. A predict-correct update combines this transition with the processed evidence, while nearby matched contacts retain their belief across geometry updates.
 
       - **Object and Object-Conditioned Contact Inference**
 
@@ -124,10 +114,10 @@ body:
 
         <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-margin-small-top" uk-grid>
           <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #16a34a; border-radius: 0.45rem;"><strong>Proximity</strong><br><span class="uk-text-small">Prioritizes contact points close to the current hand position.</span></div></div>
-          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 0.45rem;"><strong>Directional intent</strong><br><span class="uk-text-small">Rewards candidates aligned with the measured hand-motion direction.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 0.45rem;"><strong>Directional intent</strong><br><span class="uk-text-small">Rewards candidates along operator-commanded hand motion; disabled at low hand speed.</span></div></div>
           <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0.45rem;"><strong>Workspace feasibility</strong><br><span class="uk-text-small">Suppresses contact hypotheses outside the corresponding arm's reach.</span></div></div>
           <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #f97316; border-radius: 0.45rem;"><strong>Surface alignment</strong><br><span class="uk-text-small">Uses a reliable local normal to favor a compatible hand approach.</span></div></div>
-          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #64748b; border-radius: 0.45rem;"><strong>Temporal consistency</strong><br><span class="uk-text-small">Smooths and standardizes evidence to reject short-lived noisy changes.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #64748b; border-radius: 0.45rem;"><strong>Temporal consistency</strong><br><span class="uk-text-small">Temporally smooths, scales, and clips evidence before belief updating.</span></div></div>
         </div>
 
       - **Orientation Inference**
@@ -144,15 +134,15 @@ body:
         </div>
 
         <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-margin-small-top" uk-grid>
-          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #16a34a; border-radius: 0.45rem;"><strong>Geometric alignment</strong><br><span class="uk-text-small">Favors the relation with the smallest hand-axis to surface-normal error.</span></div></div>
-          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0.45rem;"><strong>Stationary hold</strong><br><span class="uk-text-small">Keeps a well-aligned relation stable while the hand is nearly still.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #16a34a; border-radius: 0.45rem;"><strong>Geometric alignment</strong><br><span class="uk-text-small">Penalizes geometric relation error with a scaled Huber loss.</span></div></div>
+          <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #7c3aed; border-radius: 0.45rem;"><strong>Stationary hold</strong><br><span class="uk-text-small">Rewards a well-aligned relation when angular speed falls below the stationary-hand threshold.</span></div></div>
           <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #2563eb; border-radius: 0.45rem;"><strong>Convergence</strong><br><span class="uk-text-small">Rewards angular motion that actively reduces relation error.</span></div></div>
           <div><div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #f97316; border-radius: 0.45rem;"><strong>Normal-sign invariance</strong><br><span class="uk-text-small">Uses squared alignment to remain robust when a perceived normal flips sign.</span></div></div>
         </div>
 
-      ### **Compliant reference generation & Bimanual Control**
+      ### **Shared Reference Generation & Bimanual Control**
 
-      - **Compliant Reference Generation**
+      - **Belief-Guided Shared Reference Generation**
 
         <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
           <div>
@@ -169,7 +159,7 @@ body:
           <span><span style="color: #f28e2b; font-size: 1.25em;">●</span> Bottle normal</span>
         </div>
 
-        **Belief-gated shared autonomy.** PATH turns confident contact and orientation hypotheses into shared targets while retaining the operator command under uncertainty. **Target-space interpolation** and **safety-aware gating** avoid abrupt authority changes; overdamped compliant dynamics then produce smooth position and SO(3) orientation references.
+        **Confidence-weighted shared targets.** A valid contact guides position when the hand is not holding an object; otherwise, the operator position command is retained. Orientation assistance blends the operator command with a minimum-rotation, relation-consistent target, weighted by belief confidence and detection-consistency gates. **Overdamped second-order reference dynamics** preserve reference pose and velocity across target changes, with exact discrete propagation and smoothly adjusted orientation parameters.
 
       - **Bimanual Humanoid Control**
 
@@ -189,7 +179,7 @@ body:
       <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
         <div>
           <video src="videos/bottle_exp.mp4" loop muted playsinline uk-video="autoplay:inview" class="uk-width-1-1"></video>
-          <span class="uk-text-meta">Bottle Opening &mdash; used for the belief-component ablation.</span>
+          <span class="uk-text-meta">Bottle Opening &mdash; belief-component ablation and reference-generation comparison.</span>
         </div>
         <div>
           <video src="videos/cup_stacking.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
@@ -199,85 +189,24 @@ body:
 
   - title: Results
     text: |
-      **Contribution of the belief components on the Bottle Opening task.** Ten completed trials
-      per condition, pooled across three expert operators. Completion time and end-effector path
-      lengths are reported as mean $\pm$ sample standard deviation, and time improvement is
-      relative to unassisted teleoperation. Results are conditioned on task completion.
+      All charts show trial means; lower is better. Green highlights PATH. Results are conditioned on successful task completion, not success rates.
 
-      <div class="uk-overflow-auto uk-width-1-1">
-        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
-          <thead>
-            <tr>
-              <th rowspan="2">Method</th>
-              <th colspan="3" class="uk-text-center">Belief components</th>
-              <th colspan="2" class="uk-text-center">Task performance</th>
-              <th colspan="2" class="uk-text-center">Operator effort</th>
-            </tr>
-            <tr>
-              <th>Pos.</th><th>Ori.</th><th>Adapt. trans.</th>
-              <th>Time (s) &darr;</th><th>Improvement (%) &uarr;</th>
-              <th>Trans. path (m) &darr;</th><th>Rot. path (rad) &darr;</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Teleoperation</td><td></td><td></td><td></td>
-              <td>39.9 &plusmn; 11.8</td><td>0.0</td><td>3.97 &plusmn; 1.41</td><td>37.49 &plusmn; 10.57</td>
-            </tr>
-            <tr>
-              <td>Pos. belief</td><td>&#10003;</td><td></td><td></td>
-              <td>35.9 &plusmn; 10.5</td><td>10.0</td><td>4.29 &plusmn; 1.62</td><td>37.24 &plusmn; 10.57</td>
-            </tr>
-            <tr>
-              <td>Ori. belief</td><td></td><td>&#10003;</td><td></td>
-              <td>37.3 &plusmn; 11.1</td><td>6.5</td><td>4.81 &plusmn; 1.64</td><td>39.12 &plusmn; 10.99</td>
-            </tr>
-            <tr>
-              <td>PATH w/o adapt. trans.</td><td>&#10003;</td><td>&#10003;</td><td></td>
-              <td>29.1 &plusmn; 8.8</td><td>27.1</td><td>3.73 &plusmn; 1.28</td><td>31.24 &plusmn; 9.60</td>
-            </tr>
-            <tr>
-              <td>PATH w/o ori.</td><td>&#10003;</td><td></td><td>&#10003;</td>
-              <td>38.3 &plusmn; 13.5</td><td>4.0</td><td>4.51 &plusmn; 1.76</td><td>38.84 &plusmn; 12.78</td>
-            </tr>
-            <tr>
-              <td>PATH w/o pos.</td><td></td><td>&#10003;</td><td>&#10003;</td>
-              <td>36.3 &plusmn; 13.3</td><td>9.0</td><td>4.55 &plusmn; 1.74</td><td>38.46 &plusmn; 13.68</td>
-            </tr>
-            <tr class="uk-active">
-              <td><b>PATH</b></td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td>
-              <td><b>26.0</b> &plusmn; 8.5</td><td><b>34.8</b></td><td><b>3.07</b> &plusmn; 1.25</td><td><b>26.51</b> &plusmn; 11.13</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      ### **Which belief components matter?**
+      On Bottle Opening, PATH reduces completion time by **34.8%** and normalized jerk by **81.4%** relative to unassisted teleoperation. Both position and orientation beliefs, together with the evidence-adaptive transition, contribute to the full method.
+      <p class="uk-text-meta">30 successful trials per condition across three expert operators. Pos. = position belief; Ori. = orientation belief; Adapt. trans. = evidence-adaptive belief transition.</p>
+      <img src="results/belief-ablation.svg" alt="Bottle Opening ablation: seven methods compared on completion time, normalized jerk, translation path, and rotation path; PATH has the lowest mean in each metric." class="uk-width-1-1" />
 
-      **Comparison with existing teleoperation systems on the Sequential Cup Stacking task.** Three
-      completed trials per method by one expert operator, reported as mean $\pm$ sample standard
-      deviation. NJ denotes normalized jerk.
+      ### **How should inferred intent become motion?**
+      With identical belief estimation and downstream inverse kinematics, PATH's shared reference generation reduces completion time by **25.2%** and normalized jerk by **74.3%** relative to Alpha Blend + LPF.
+      <p class="uk-text-meta">Separate Bottle Opening experiment: 30 successful trials per condition across three expert operators. Only reference generation differs between conditions. LPF = low-pass filter.</p>
+      <img src="results/reference-generation.svg" alt="Reference generation: Alpha Blend, Alpha Blend plus LPF, and PATH compared on completion time, normalized jerk, translation path, and rotation path." class="uk-width-1-1" />
 
-      <div class="uk-overflow-auto uk-width-1-1">
-        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>Time (s) &darr;</th>
-              <th>NJ (&times;10<sup>10</sup>) &darr;</th>
-              <th>Trans. path (m) &darr;</th>
-              <th>Rot. path (rad) &darr;</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>SONIC</td><td>64.18 &plusmn; 1.12</td><td>15.75 &plusmn; 3.68</td><td>11.09 &plusmn; 1.20</td><td>43.52 &plusmn; 3.29</td></tr>
-            <tr><td>TWIST2</td><td>56.42 &plusmn; 2.39</td><td>13.95 &plusmn; 1.38</td><td>8.15 &plusmn; 1.36</td><td>33.06 &plusmn; 5.93</td></tr>
-            <tr><td>XR-Teleop</td><td>55.04 &plusmn; 2.10</td><td>3.84 &plusmn; 0.40</td><td>6.06 &plusmn; 0.12</td><td>34.27 &plusmn; 3.28</td></tr>
-            <tr class="uk-active">
-              <td><b>PATH (ours)</b></td>
-              <td><b>42.82</b> &plusmn; 2.69</td><td><b>1.29</b> &plusmn; 0.32</td><td><b>5.66</b> &plusmn; 1.00</td><td><b>27.23</b> &plusmn; 2.85</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      ### **Comparison with teleoperation systems**
+      On Sequential Cup Stacking, PATH reduces completion time by **22.2%** and normalized jerk by **66.4%** relative to the matched XR-Teleop baseline.
+      <p class="uk-text-meta">15 successful trials per condition across three expert operators. XR-Teleop shares PATH's retargeting and IK pipeline without intent-guided assistance; SONIC and TWIST2 are system-level references.</p>
+      <img src="results/teleoperation-comparison.svg" alt="Sequential Cup Stacking: SONIC, TWIST2, XR-Teleop, and PATH compared on completion time, normalized jerk, translation path, and rotation path." class="uk-width-1-1" />
+
+      <p class="uk-text-meta">Jerk is the normalized, dimensionless trajectory-jerk metric, shown using the paper's ×10¹⁰ scale. All values are trial means.</p>
 
 bibtex: >
   @inproceedings{path2027,
