@@ -45,6 +45,27 @@ body:
 
       - **Real-world demonstration**
 
+        <p><strong>Bimanual intent inference during cup stacking.</strong> The left panels show intent inference for each hand; the right panel shows PATH executing the cup-stacking task.</p>
+
+        <div class="uk-grid-medium uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
+          <div>
+            <figure class="uk-margin-remove">
+              <video src="videos/cup_intent_right.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1" style="display: block; border-radius: 10px;" aria-label="Right hand intent inference"></video>
+              <figcaption class="uk-margin-small-top"><strong>Right hand</strong><br><span class="uk-text-small">Manipulation intent inferred for the right hand.</span></figcaption>
+            </figure>
+            <figure class="uk-margin-medium-top uk-margin-remove-bottom">
+              <video src="videos/cup_intent_left.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1" style="display: block; border-radius: 10px;" aria-label="Left hand intent inference"></video>
+              <figcaption class="uk-margin-small-top"><strong>Left hand</strong><br><span class="uk-text-small">Manipulation intent inferred for the left hand.</span></figcaption>
+            </figure>
+          </div>
+          <div>
+            <figure class="uk-margin-remove">
+              <video src="videos/PATH_cup_stack.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1" style="display: block; border-radius: 10px;" aria-label="PATH cup stacking execution"></video>
+              <figcaption class="uk-margin-small-top"><strong>PATH — Cup stacking</strong><br><span class="uk-text-small">Bimanual execution with belief-guided assistance.</span></figcaption>
+            </figure>
+          </div>
+        </div>
+
         <p><strong>Goal-directed bottle opening amid distractors.</strong> Even when several distracting objects are present on the table, PATH identifies the intended bottle, guides a precise grasp, and assists the opening task.</p>
 
         <div uk-slider="finite: true">
@@ -61,27 +82,6 @@ body:
             <a class="uk-position-center-right uk-position-small uk-hidden-hover" href uk-slidenav-next uk-slider-item="next" aria-label="Next demonstration"></a>
           </div>
           <ul class="uk-slider-nav uk-dotnav uk-flex-center uk-margin-small-top"></ul>
-        </div>
-
-      - **Comparison with teleoperation without belief inference**
-
-        <p class="uk-text-small">Direct visual comparison under the same cup-manipulation task.</p>
-
-        <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m uk-flex-middle" uk-grid>
-          <div>
-            <video src="videos/comparison/PATH_CUP.MOV" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1"></video>
-            <div class="uk-padding-small" style="background: #ecfdf5; border-left: 3px solid #16a34a; border-radius: 0 0 0.45rem 0.45rem;">
-              <strong style="color: #15803d;">PATH (ours)</strong><br>
-              <span class="uk-text-small">Belief-guided object, contact, and orientation assistance</span>
-            </div>
-          </div>
-          <div>
-            <video src="videos/comparison/TELEOP_real.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1"></video>
-            <div class="uk-padding-small" style="background: #f8fafc; border-left: 3px solid #64748b; border-radius: 0 0 0.45rem 0.45rem;">
-              <strong style="color: #475569;">Teleoperation only</strong><br>
-              <span class="uk-text-small">Operator command without belief inference</span>
-            </div>
-          </div>
         </div>
 
       ### **Hierarchical manipulation belief**
@@ -171,21 +171,6 @@ body:
             <p class="uk-margin-remove"><strong>Joint nonlinear IK for coordinated assistance.</strong> PATH solves both 7-DoF arms together from the generated task-space references, balancing position and orientation tracking with joint-limit feasibility. <strong>Warm-started, smooth redundancy resolution</strong> regularizes the solution and penalizes inter-frame motion, yielding continuous, executable bimanual commands while locomotion remains independently controlled.</p>
           </div>
         </div>
-
-  - title: Experiments
-    text: |
-      We evaluate PATH on real-world humanoid manipulation tasks.
-
-      <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
-        <div>
-          <video src="videos/bottle_exp.mp4" loop muted playsinline uk-video="autoplay:inview" class="uk-width-1-1"></video>
-          <span class="uk-text-meta">Bottle Opening &mdash; belief-component ablation and reference-generation comparison.</span>
-        </div>
-        <div>
-          <video src="videos/cup_stacking.mp4" loop muted playsinline uk-video="autoplay:inview"></video>
-          <span class="uk-text-meta">Sequential Cup Stacking &mdash; used for the teleoperation-system comparison.</span>
-        </div>
-      </div>
 
   - title: Results
     text: |
