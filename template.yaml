@@ -60,7 +60,7 @@ body:
           </div>
           <div>
             <figure class="uk-margin-remove">
-              <video src="videos/PATH_cup_stack.mp4" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1" style="display: block; border-radius: 10px;" aria-label="PATH cup stacking execution"></video>
+              <video src="videos/comparison/PATH_CUP.MOV" loop muted playsinline preload="metadata" uk-video="autoplay:inview" class="uk-width-1-1" style="display: block; border-radius: 10px;" aria-label="PATH cup stacking execution"></video>
               <figcaption class="uk-margin-small-top"><strong>PATH — Cup stacking</strong><br><span class="uk-text-small">Bimanual execution with belief-guided assistance.</span></figcaption>
             </figure>
           </div>
